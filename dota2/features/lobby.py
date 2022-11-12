@@ -174,8 +174,9 @@ class Lobby(object):
 
         # jobid = self.send_job(EDOTAGCMsg.EMsgGCPracticeLobbyList, {
         #     "custom_game_id": 1576297063})
-        jobid = self.send_job(EDOTAGCMsg.EMsgGCPracticeLobbyList)
-
+        jobid = self.send_job(EDOTAGCMsg.EMsgGCPracticeLobbyList, {
+            "workshop_id": "1576297063"})
+        sef.send_job.func_code
         resp = self.wait_msg(jobid, timeout=10)
         return resp.lobbies if resp else None
 
