@@ -18,18 +18,18 @@ from dota2.protobufs import gcsdk_gcmessages_pb2 as pb_gc
 from dota2.protobufs import dota_gcmessages_client_pb2 as pb_gclient
 
 
-
 class Dota2Client(GameCoordinator, FeatureBase):
     """
     :param steam_client: Instance of the steam client
     :type steam_client: :class:`steam.client.SteamClient`
     """
     _retry_welcome_loop = None
-    verbose_debug = False  #: enable pretty print of messages in debug logging
+    verbose_debug = True  #: enable pretty print of messages in debug logging
     app_id = 570  #: main client app id
     current_jobid = 0
     ready = False  #: ``True`` when we have a session with GC
-    connection_status = GCConnectionStatus.NO_SESSION  #: :class:`dota2.enums.GCConnectionStatus`
+    #: :class:`dota2.enums.GCConnectionStatus`
+    connection_status = GCConnectionStatus.NO_SESSION
 
     @property
     def account_id(self):
@@ -52,17 +52,20 @@ class Dota2Client(GameCoordinator, FeatureBase):
         FeatureBase.__init__(self)
 
         self.steam.on('disconnected', self._handle_disconnect)
-        self.steam.on(EMsg.ClientPlayingSessionState, self._handle_play_sess_state)
+        self.steam.on(EMsg.ClientPlayingSessionState,
+                      self._handle_play_sess_state)
 
         # register GC message handles
-        self.on(EGCBaseClientMsg.EMsgGCClientConnectionStatus, self._handle_conn_status)
-        self.on(EGCBaseClientMsg.EMsgGCClientWelcome, self._handle_client_welcome)
+        self.on(EGCBaseClientMsg.EMsgGCClientConnectionStatus,
+                self._handle_conn_status)
+        self.on(EGCBaseClientMsg.EMsgGCClientWelcome,
+                self._handle_client_welcome)
 
     def __repr__(self):
         return "<%s(%s) %s>" % (self.__class__.__name__,
-                                              repr(self.steam),
-                                              repr(self.connection_status),
-                                              )
+                                repr(self.steam),
+                                repr(self.connection_status),
+                                )
 
     def _handle_play_sess_state(self, message):
         if self.ready and message.body.playing_app != self.app_id:
@@ -89,8 +92,8 @@ class Dota2Client(GameCoordinator, FeatureBase):
         self.emit('dota_welcome', submessage)
 
         for extra in submessage.extra_messages:
-            self._process_gc_message(extra.id, GCMsgHdrProto(extra.id), extra.contents)
-
+            self._process_gc_message(
+                extra.id, GCMsgHdrProto(extra.id), extra.contents)
 
     def _handle_conn_status(self, message):
         self._set_connection_status(message.status)
@@ -108,9 +111,9 @@ class Dota2Client(GameCoordinator, FeatureBase):
 
         if self.verbose_debug:
             self._LOG.debug("Incoming: %s\n%s\n---------\n%s" % (repr(emsg),
-                                                              str(header),
-                                                              str(message),
-                                                              ))
+                                                                 str(header),
+                                                                 str(message),
+                                                                 ))
         else:
             self._LOG.debug("Incoming: %s", repr(emsg))
 
@@ -207,7 +210,8 @@ class Dota2Client(GameCoordinator, FeatureBase):
             proto = find_proto(emsg)
 
         if not issubclass(proto, google.protobuf.message.Message):
-            raise ValueError("Unable to find proto for emsg, or proto kwarg is invalid")
+            raise ValueError(
+                "Unable to find proto for emsg, or proto kwarg is invalid")
 
         message = proto()
         proto_fill_from_dict(message, data)
@@ -234,22 +238,22 @@ class Dota2Client(GameCoordinator, FeatureBase):
         GameCoordinator.send(self, header, message.SerializeToString())
 
     def _knock_on_gc(self):
-            n = 1
+        n = 1
 
-            while True:
-                if not self.ready:
-                    self.send(EGCBaseClientMsg.EMsgGCClientHello, {
-                        'client_session_need': EDOTAGCSessionNeed.UserInUINeverConnected,
-                        'engine': ESourceEngine.ESE_Source2,
-                        })
+        while True:
+            if not self.ready:
+                self.send(EGCBaseClientMsg.EMsgGCClientHello, {
+                    'client_session_need': EDOTAGCSessionNeed.UserInUINeverConnected,
+                    'engine': ESourceEngine.ESE_Source2,
+                })
 
-                    self.wait_event('ready', timeout=3 + (2**n))
-                    n = min(n + 1, 4)
+                self.wait_event('ready', timeout=3 + (2**n))
+                n = min(n + 1, 4)
 
-                else:
-                    self.wait_event('notready')
-                    n = 1
-                    gevent.sleep(1)
+            else:
+                self.wait_event('notready')
+                n = 1
+                gevent.sleep(1)
 
     def launch(self):
         """
@@ -263,7 +267,8 @@ class Dota2Client(GameCoordinator, FeatureBase):
             return
 
         if not self._retry_welcome_loop and self.app_id not in self.steam.current_games_played:
-            self.steam.games_played(self.steam.current_games_played + [self.app_id])
+            self.steam.games_played(
+                self.steam.current_games_played + [self.app_id])
             self._retry_welcome_loop = gevent.spawn(self._knock_on_gc)
 
     def exit(self):
