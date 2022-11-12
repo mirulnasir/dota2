@@ -35,12 +35,16 @@ class Lobby(object):
 
     def __init__(self):
         super(Lobby, self).__init__()
-        self.socache.on(('new', ESOType.CSODOTALobbyInvite), self.__handle_lobby_invite)
-        self.socache.on(('removed', ESOType.CSODOTALobbyInvite), self.__handle_lobby_invite_removed)
+        self.socache.on(('new', ESOType.CSODOTALobbyInvite),
+                        self.__handle_lobby_invite)
+        self.socache.on(('removed', ESOType.CSODOTALobbyInvite),
+                        self.__handle_lobby_invite_removed)
 
         self.socache.on(('new', ESOType.CSODOTALobby), self.__handle_lobby_new)
-        self.socache.on(('updated', ESOType.CSODOTALobby), self.__handle_lobby_changed)
-        self.socache.on(('removed', ESOType.CSODOTALobby), self.__handle_lobby_removed)
+        self.socache.on(('updated', ESOType.CSODOTALobby),
+                        self.__handle_lobby_changed)
+        self.socache.on(('removed', ESOType.CSODOTALobby),
+                        self.__handle_lobby_removed)
 
     def __lobby_cleanup(self):
         self.lobby = None
@@ -120,7 +124,8 @@ class Lobby(object):
         options['lobby_id'] = self.lobby.lobby_id
 
         if self.verbose_debug:
-            self._LOG.debug("Changing lobby options of lobby %s", self.lobby.lobby_id)
+            self._LOG.debug("Changing lobby options of lobby %s",
+                            self.lobby.lobby_id)
 
         self.send(EDOTAGCMsg.EMsgGCPracticeLobbySetDetails, options)
 
@@ -143,8 +148,8 @@ class Lobby(object):
 
         jobid = self.send(EDOTAGCMsg.EMsgGCLobbyList,
                           {
-                             'server_region': server_region,
-                             'game_mode': game_mode,
+                              'server_region': server_region,
+                              'game_mode': game_mode,
                           })
 
         resp = self.wait_msg(EDOTAGCMsg.EMsgGCLobbyListResponse, timeout=10)
@@ -167,8 +172,8 @@ class Lobby(object):
         if self.verbose_debug:
             self._LOG.debug("Requesting practice lobby list.")
 
-        jobid = self.send_job(EDOTAGCMsg.EMsgGCPracticeLobbyList,{
-        "custom_game_mode":1576297063})
+        jobid = self.send_job(EDOTAGCMsg.EMsgGCPracticeLobbyList, {
+            "custom_game_id": 1576297063})
 
         resp = self.wait_msg(jobid, timeout=10)
         return resp.lobbies if resp else None
@@ -183,7 +188,8 @@ class Lobby(object):
         if self.verbose_debug:
             self._LOG.debug("Requesting friend practice lobby list.")
 
-        jobid = self.send_job(EDOTAGCMsg.EMsgGCFriendPracticeLobbyListRequest, {})
+        jobid = self.send_job(
+            EDOTAGCMsg.EMsgGCFriendPracticeLobbyListRequest, {})
         resp = self.wait_msg(jobid, timeout=10)
 
         return resp.lobbies if resp else None
@@ -275,7 +281,8 @@ class Lobby(object):
         :rtype: :class: `DOTAJoinLobbyResult`. `DOTAJoinLobbyResult.DOTA_JOIN_RESULT_TIMEOUT` if timeout
         """
         if self.verbose_debug:
-            self._LOG.debug("Trying to join practice lobby %s using password %s" % (id, password))
+            self._LOG.debug(
+                "Trying to join practice lobby %s using password %s" % (id, password))
 
         jobid = self.send_job(EDOTAGCMsg.EMsgGCPracticeLobbyJoin, {
             "lobby_id": id,
@@ -373,7 +380,8 @@ class Lobby(object):
             return
 
         if self.verbose_debug:
-            self._LOG.debug("Adding a bot %s in slot %s of lobby team %s." % (bot_difficulty, slot, team))
+            self._LOG.debug("Adding a bot %s in slot %s of lobby team %s." % (
+                bot_difficulty, slot, team))
 
         self.send(EDOTAGCMsg.EMsgGCPracticeLobbySetTeamSlot, {
             "team": team,
@@ -391,7 +399,8 @@ class Lobby(object):
         :type  accept: :class:`bool`
         """
         if self.verbose_debug:
-            self._LOG.debug("Responding to lobby invite %s, accept: %s" % (lobby_id, accept))
+            self._LOG.debug(
+                "Responding to lobby invite %s, accept: %s" % (lobby_id, accept))
 
         self.send(EGCBaseMsg.EMsgGCLobbyInviteResponse, {
             "lobby_id": lobby_id,
