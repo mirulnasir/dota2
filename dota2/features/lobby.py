@@ -167,11 +167,7 @@ class Lobby(object):
         if self.verbose_debug:
             self._LOG.debug("Requesting practice lobby list.")
 
-        jobid = self.send_job(EDOTAGCMsg.EMsgGCPracticeLobbyList,
-                             {
-                                'tournament_games': tournament_games,
-                                'pass_key': password,
-                             })
+        jobid = self.send_job(EDOTAGCMsg.EMsgGCPracticeLobbyList)
 
         resp = self.wait_msg(jobid, timeout=10)
         return resp.lobbies if resp else None
